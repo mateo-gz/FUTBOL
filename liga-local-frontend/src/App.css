@@ -1,0 +1,355 @@
+:root {
+    --color-principal: rgb(50, 54, 92);
+    --color-secundario: rgb(138, 146, 196);
+    --color-terciario: rgb(18, 18, 21);
+    --color-cuaternario: rgb(254, 254, 55);
+    font-family: sans-serif;
+    color: var(--color-terciario);
+    font-weight: bolder;
+  }
+  
+  body {
+    width: 100%;
+    background-color: var(--color-principal);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 6vw;
+    background-color: var(--color-secundario);
+    padding: 10px;
+    border-radius: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+
+  .home,
+  #adminPanel {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 4%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .login {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-secundario);
+    border-radius: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .form-login {
+    width: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-principal);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .login-input {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--color-secundario);
+    color: var(--color-terciario);
+    font-size: 4vw;
+    border-radius: 12px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-principal);
+    outline: none;
+  }
+
+  .login-input::placeholder {
+    color: var(--color-terciario);
+  }
+
+  .login-input:focus {
+    border: 1px solid var(--color-cuaternario); 
+  }
+
+  /*tabla section*/
+
+  .tabla {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-secundario);
+    align-items: center;
+    border-radius: 12px;
+    padding: 10px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  table {
+    width: 100%;
+    background-color: var(--color-secundario);
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  
+  thead {
+    background-color: var(--color-principal);
+  }
+  
+  tr {
+    font-size: 3vw;
+    text-align: center;
+  }
+  
+  th {
+    text-align: left;
+    color: var(--color-secundario);
+  }
+  
+  th, td {
+    border: 1px solid #ccc;
+    padding: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  tbody {
+    /* Este borde es opcional. Si ya lo tenés en la tabla, podés quitarlo. */
+    border: 1px solid var(--color-principal);
+  }
+  
+
+  /*equipos section*/
+
+  .equipos {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--color-secundario);
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  .lista-equipos {
+    width: 100%;
+    border: 1px solid var(--color-principal);
+    border-radius: 12px;
+    padding: 10px;
+    margin: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .equipo {
+    width: 100%;
+    list-style: none;
+    border: 1px solid var(--color-principal);
+    border-radius: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /*calendario section*/
+
+  .calendario {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    background-color: var(--color-secundario);
+    border-radius: 12px;
+  }
+
+  .calendario-lista {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--color-secundario);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+
+  .jornada {
+    width: 100%;
+    list-style: none;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    color: var(--color-terciario);
+    border: 1px solid var(--color-principal);
+    text-align: justify;
+    gap: 10px;
+  }
+
+  /*agregar equipos section*/
+
+  .add-equipo {
+    background-color: var(--color-secundario);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .add-form {
+    width: 100%;
+    border: 1px solid var(--color-principal);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 12px;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+
+  .add-input {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 1px solid var(--color-principal);
+    background-color: var(--color-secundario);
+    padding: 10px;
+    text-align: center;
+    font-weight: bolder;
+  }
+
+  .add-input::placeholder {
+    color: var(--color-terciario);
+  }
+
+  .add-input:focus {
+    outline: none;
+    border: 1px solid var(--color-cuaternario);
+  }
+
+  /*editar partidos section*/
+
+  .edit-partido {
+    width: 100%;
+    background-color: var(--color-secundario);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .edit-lista {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--color-principal);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .jornada-edit {
+    width: 100%;
+    list-style: none;
+    border: 1px solid var(--color-principal);
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .edit-input {
+    width: 40%;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid var(--color-principal);
+    background-color: var(--color-secundario);
+    padding: 5px;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .edit-input:focus {
+    border: 1px solid var(--color-cuaternario);
+  }
+
+  /*registrar partidos section*/
+
+  .registro {
+    width: 100%;
+    background-color: var(--color-secundario);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+    gap: 10px;
+  }
+
+  .select-registro,
+  .registro-input {
+    background-color: var(--color-secundario);
+    border-radius: 12px;
+    border: 1px solid var(--color-principal);
+    padding: 10px;
+    outline: none;
+  }
+
+  .jornada-option {
+    border: 1px solid var(--color-principal);
+    color: var(--color-terciario);
+  }
+
+  .registro-input::placeholder {
+    color: var(--color-terciario);
+  }
+
+@media screen and (min-width: 800px) {
+  .home,
+  #adminPanel {
+    padding: 4% 15%;
+  }
+}

@@ -1,0 +1,255 @@
+const express = require('express');
+const { Client } = require('pg');
+const cors = require('cors');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+
+const app = express(); // <--- ESTA LÍNEA ES CLAVE
+
+app.use(cors());
+app.use(express.json());
+
+
+const client = new Client({
+  host: 'localhost',
+  port: 5432,
+  user: 'postgres',
+  password: 'admin123',
+  database: 'liga_local'
+});
+
+client.connect()
+  .then(() => console.log('Conexión a BD exitosa, bro'))
+  .catch(e => console.error('Error conectando a BD:', e));
+
+// ENDPOINT POST
+// index.js
+app.post('/equipos', async (req, res) => {
+  const { nombre } = req.body; // acá agarras el nombre del equipo
+  try {
+    const query = 'INSERT INTO equipos (nombre) VALUES ($1) RETURNING *';
+    const values = [nombre];  // ¡ojo! aquí usas "nombre", no "nombreEquipo"
+    const result = await client.query(query, values); 
+    
+    res.json(result.rows[0]); // te devuelve el equipo recién creado con id
+  } catch (error) {
+    console.error('Error al agregar equipo:', error);
+    res.status(500).send('Error al agregar equipo');
+  }
+});
+
+
+
+// ENDPOINT GET
+app.get('/equipos', async (req, res) => {
+  try {
+    const result = await client.query('SELECT * FROM equipos ORDER BY id');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener equipos:', error);
+    res.status(500).json({ error: 'Error al obtener equipos' });
+  }
+});
+
+
+app.get('/partidos', async (req, res) => {
+  try {
+    const result = await client.query(`
+      SELECT p.id, 
+             el.nombre AS equipo_local, 
+             ev.nombre AS equipo_visitante, 
+             p.jornada, 
+             p.goles_local, 
+             p.goles_visitante
+      FROM partidos p
+      JOIN equipos el ON p.equipo_local = el.id
+      JOIN equipos ev ON p.equipo_visitante = ev.id
+      ORDER BY p.jornada ASC;
+    `);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener los partidos:', error);
+    res.status(500).send('Error al obtener los partidos');
+  }
+});
+
+
+app.post('/registrar-resultado', async (req, res) => {
+  const { partidoId, golesLocal, golesVisitante } = req.body;
+
+  try {
+    // 1. Actualizar el partido con el resultado
+    await client.query(
+      'UPDATE partidos SET goles_local = $1, goles_visitante = $2 WHERE id = $3',
+      [golesLocal, golesVisitante, partidoId]
+    );
+
+    // 2. Obtener los IDs de los equipos
+    const partido = await client.query(
+      'SELECT equipo_local, equipo_visitante FROM partidos WHERE id = $1',
+      [partidoId]
+    );
+    const { equipo_local, equipo_visitante } = partido.rows[0];
+
+    // 3. Calcular puntos
+    let puntosLocal = 0, puntosVisitante = 0;
+    if (golesLocal > golesVisitante) {
+      puntosLocal = 3;
+    } else if (golesLocal < golesVisitante) {
+      puntosVisitante = 3;
+    } else {
+      puntosLocal = 1;
+      puntosVisitante = 1;
+    }
+
+    // 4. Actualizar stats de ambos equipos
+    await client.query(`
+      UPDATE equipos
+      SET puntos = puntos + $1,
+          goles_a_favor = goles_a_favor + $2,
+          goles_en_contra = goles_en_contra + $3,
+          diferencia_goles = diferencia_goles + ($2 - $3),
+          partidos_jugados = partidos_jugados + 1
+      WHERE id = $4
+    `, [puntosLocal, golesLocal, golesVisitante, equipo_local]);
+
+    await client.query(`
+      UPDATE equipos
+      SET puntos = puntos + $1,
+          goles_a_favor = goles_a_favor + $2,
+          goles_en_contra = goles_en_contra + $3,
+          diferencia_goles = diferencia_goles + ($2 - $3),
+          partidos_jugados = partidos_jugados + 1
+      WHERE id = $4
+    `, [puntosVisitante, golesVisitante, golesLocal, equipo_visitante]);
+
+    res.status(200).send('Resultado registrado y tabla actualizada 🔥');
+  } catch (err) {
+    console.error('Error al registrar resultado:', err);
+    res.status(500).send('Hubo un fallo en Matrix al guardar el resultado');
+  }
+});
+
+app.put('/partidos/:id', async (req, res) => {
+  const { id } = req.params;
+  const { goles_local, goles_visitante } = req.body;
+
+  try {
+    await client.query(
+      'UPDATE partidos SET goles_local = $1, goles_visitante = $2 WHERE id = $3',
+      [goles_local, goles_visitante, id]
+    );
+    res.send({ message: 'Resultado actualizado' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error actualizando resultado');
+  }
+});
+
+app.get('/tabla-posiciones', async (req, res) => {
+  try {
+    const result = await client.query(`
+      SELECT
+        e.id AS equipo_id,
+        e.nombre AS equipo,
+        COUNT(p.id) AS PJ,
+        SUM(CASE
+          WHEN (p.equipo_local = e.id AND p.goles_local > p.goles_visitante) OR
+               (p.equipo_visitante = e.id AND p.goles_visitante > p.goles_local)
+          THEN 1 ELSE 0 END) AS G,
+        SUM(CASE WHEN p.goles_local = p.goles_visitante THEN 1 ELSE 0 END) AS E,
+        SUM(CASE
+          WHEN (p.equipo_local = e.id AND p.goles_local < p.goles_visitante) OR
+               (p.equipo_visitante = e.id AND p.goles_visitante < p.goles_local)
+          THEN 1 ELSE 0 END) AS P,
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_local
+                 WHEN p.equipo_visitante = e.id THEN p.goles_visitante ELSE 0 END) AS GF,
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_visitante
+                 WHEN p.equipo_visitante = e.id THEN p.goles_local ELSE 0 END) AS GC,
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_local
+                 WHEN p.equipo_visitante = e.id THEN p.goles_visitante ELSE 0 END)
+        -
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_visitante
+                 WHEN p.equipo_visitante = e.id THEN p.goles_local ELSE 0 END) AS DG,
+        SUM(CASE
+          WHEN (p.equipo_local = e.id AND p.goles_local > p.goles_visitante) OR
+               (p.equipo_visitante = e.id AND p.goles_visitante > p.goles_local)
+          THEN 3
+          WHEN p.goles_local = p.goles_visitante THEN 1
+          ELSE 0
+        END) AS PTS
+      FROM equipos e
+      LEFT JOIN partidos p ON (p.equipo_local = e.id OR p.equipo_visitante = e.id)
+        AND p.goles_local IS NOT NULL AND p.goles_visitante IS NOT NULL
+      GROUP BY e.id, e.nombre
+      ORDER BY PTS DESC, DG DESC, GF DESC;
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al obtener la tabla de posiciones');
+  }
+});
+
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await client.query('SELECT * FROM admins WHERE username = $1', [username]);
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ error: 'Usuario no encontrado 🕵️‍♂️' });
+    }
+
+    // Comparar la contraseña con bcrypt
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Contraseña incorrecta ❌' });
+    }
+
+    // Crear el token
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      'clave-secreta-ultra-letal',
+      { expiresIn: '1h' }
+    );
+
+    res.json({ message: 'Login exitoso ✅', token });
+  } catch (err) {
+    console.error('Error en login:', err);
+    res.status(500).json({ error: 'Error interno del servidor 🔧' });
+  }
+});
+
+// const encryptPasswords = async () => {
+//   try {
+
+//     // Traer todos los usuarios
+//     const res = await client.query('SELECT * FROM admins');
+
+//     for (let admin of res.rows) {
+//       const hashed = await bcrypt.hash(admin.password, 10);
+//       await client.query(
+//         'UPDATE admins SET password = $1 WHERE id = $2',
+//         [hashed, admin.id]
+//       );
+//       console.log(`Contraseña encriptada para ${admin.username} ✅`);
+//     }
+
+//     console.log('Listo bro, todo cifrado como Dios manda 🔐');
+//   } catch (err) {
+//     console.error('Error al encriptar contraseñas 💥', err);
+//   }
+// };
+
+// encryptPasswords();
+
+
+// LEVANTAR SERVIDOR
+app.listen(3000, () => {
+  console.log('Servidor corriendo en puerto 3000');
+});

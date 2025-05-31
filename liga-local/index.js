@@ -10,7 +10,6 @@ const app = express(); // <--- ESTA LÍNEA ES CLAVE
 app.use(cors());
 app.use(express.json());
 
-const express = require("express");
 const path = require("path");
 
 // Middleware para servir frontend compilado

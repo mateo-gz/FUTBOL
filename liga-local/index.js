@@ -10,6 +10,12 @@ const app = express(); // <--- ESTA LÍNEA ES CLAVE
 app.use(cors());
 app.use(express.json());
 
+const path = require('path')
+app.use(express.static(path.join(__dirname, 'client', 'build')))
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'))
+})
 
 const client = new Client({
   host: 'localhost',

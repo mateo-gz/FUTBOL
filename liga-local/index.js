@@ -17,6 +17,11 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'))
 })
 
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`)
+})
+
 const client = new Client({
   host: 'localhost',
   port: 5432,

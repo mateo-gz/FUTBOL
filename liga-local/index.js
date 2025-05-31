@@ -211,32 +211,34 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const result = await client.query('SELECT * FROM admins WHERE username = $1', [username]);
-    const user = result.rows[0];
+    // 1. Buscar usuario en la base de datos
+    const result = await client.query('SELECT * FROM usuarios WHERE username = $1', [username]);
 
-    if (!user) {
-      return res.status(401).json({ error: 'Usuario no encontrado 🕵️‍♂️' });
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
-    // Comparar la contraseña con bcrypt
-    const isMatch = await bcrypt.compare(password, user.password);
+    const usuario = result.rows[0];
+
+    // 2. Comparar contraseña hasheada
+    const isMatch = await bcrypt.compare(password, usuario.password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Contraseña incorrecta ❌' });
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
 
-    // Crear el token
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      'clave-secreta-ultra-letal',
-      { expiresIn: '1h' }
-    );
+    // 3. Crear token JWT
+    const token = jwt.sign({ id: usuario.id, username: usuario.username }, 'tu_clave_secreta', {
+      expiresIn: '1h'
+    });
 
-    res.json({ message: 'Login exitoso ✅', token });
-  } catch (err) {
-    console.error('Error en login:', err);
-    res.status(500).json({ error: 'Error interno del servidor 🔧' });
+    // 4. Enviar token como respuesta
+    res.json({ message: 'Inicio de sesión exitoso', token });
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({ error: 'Error en el servidor al iniciar sesión' });
   }
 });
+
 
 // const encryptPasswords = async () => {
 //   try {

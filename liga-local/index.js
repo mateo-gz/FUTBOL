@@ -4,6 +4,8 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+require('dotenv').config();
+
 
 const app = express(); // <--- ESTA LÍNEA ES CLAVE
 
@@ -15,12 +17,19 @@ const path = require("path");
 
 
 const client = new Client({
-  host: 'localhost',
-  port: 5432,
-  user: 'postgres',
-  password: 'admin123',
-  database: 'liga_local'
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
+const token = jwt.sign(
+  { id: user.id, username: user.username },
+  process.env.JWT_SECRET, // YA USAR ESTA VARIABLE, NO EL STRING FIJO
+  { expiresIn: '1h' }
+);
+
+
 
 client.connect()
   .then(() => console.log('Conexión a BD exitosa, bro'))

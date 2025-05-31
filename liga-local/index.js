@@ -211,33 +211,32 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // 1. Buscar usuario en la base de datos
     const result = await client.query('SELECT * FROM usuarios WHERE username = $1', [username]);
+    const user = result.rows[0];
 
-    if (result.rows.length === 0) {
+    if (!user) {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
-    const usuario = result.rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
-    // 2. Comparar contraseña hasheada
-    const isMatch = await bcrypt.compare(password, usuario.password);
-    if (!isMatch) {
+    if (!passwordMatch) {
       return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
 
-    // 3. Crear token JWT
-    const token = jwt.sign({ id: usuario.id, username: usuario.username }, 'tu_clave_secreta', {
-      expiresIn: '1h'
-    });
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      'tu_clave_secreta_ultra_segura', // ¡Cámbiala! No seas noob 😅
+      { expiresIn: '1h' }
+    );
 
-    // 4. Enviar token como respuesta
-    res.json({ message: 'Inicio de sesión exitoso', token });
+    res.json({ token });
   } catch (error) {
     console.error('Error en login:', error);
-    res.status(500).json({ error: 'Error en el servidor al iniciar sesión' });
+    res.status(500).json({ error: 'Error en el servidor, bro' });
   }
 });
+
 
 
 // const encryptPasswords = async () => {

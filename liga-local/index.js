@@ -12,16 +12,6 @@ app.use(express.json());
 
 const path = require("path");
 
-// Middleware para servir frontend compilado
-app.use(express.static(path.join(__dirname, "../frontend/build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-});
-
-// Puerto dinámico para Render
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
 
 
 const client = new Client({
@@ -262,8 +252,14 @@ app.post('/login', async (req, res) => {
 
 // encryptPasswords();
 
+// Middleware para servir frontend compilado
+app.use(express.static(path.join(__dirname, "../frontend/build")));
 
-// LEVANTAR SERVIDOR
-app.listen(3000, () => {
-  console.log('Servidor corriendo en puerto 3000');
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
+
+// Puerto dinámico para Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+

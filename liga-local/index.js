@@ -23,12 +23,19 @@ const client = new Client({
   }
 });
 
-const token = jwt.sign(
-  { id: user.id, username: user.username },
-  process.env.JWT_SECRET, // YA USAR ESTA VARIABLE, NO EL STRING FIJO
-  { expiresIn: '1h' }
-);
+function generarToken(user) {
+  if (!user || !user.id || !user.username) {
+    throw new Error('Usuario inválido');
+  }
 
+  const token = jwt.sign(
+    { id: user.id, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+
+  return token;
+}
 
 
 client.connect()
@@ -64,26 +71,26 @@ app.get('/equipos', async (req, res) => {
   }
 });
 
-
 app.get('/partidos', async (req, res) => {
   try {
     const result = await client.query(`
-      SELECT p.id, 
-             el.nombre AS equipo_local, 
-             ev.nombre AS equipo_visitante, 
-             p.jornada, 
-             p.goles_local, 
-             p.goles_visitante
+      SELECT 
+        p.id, 
+        el.nombre AS equipo_local, 
+        ev.nombre AS equipo_visitante, 
+        p.jornada, 
+        p.goles_local, 
+        p.goles_visitante
       FROM partidos p
       JOIN equipos el ON p.equipo_local = el.id
       JOIN equipos ev ON p.equipo_visitante = ev.id
       ORDER BY p.jornada ASC;
     `);
 
-    res.status(200).json(result.rows);
+    res.status(200).json(result.rows); // Devolvemos los partidos en formato JSON
   } catch (error) {
-    console.error('Error al obtener los partidos:', error);
-    res.status(500).send('Error al obtener los partidos');
+    console.error('Error al obtener partidos:', error); // Log para saber qué petó
+    res.status(500).json({ message: 'Error al obtener partidos' });
   }
 });
 
@@ -208,9 +215,9 @@ app.get('/tabla-posiciones', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
+  console.log('Intentando login...'); // <-- esto
   try {
-    const result = await client.query('SELECT * FROM usuarios WHERE username = $1', [username]);
+    const result = await client.query('SELECT * FROM admins WHERE username = $1', [username]);
     const user = result.rows[0];
 
     if (!user) {
@@ -262,11 +269,19 @@ app.post('/login', async (req, res) => {
 // encryptPasswords();
 
 // Middleware para servir frontend compilado
-app.use(express.static(path.join(__dirname, "../frontend/build")));
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+const fs = require("fs");
+
+app.use((req, res, next) => {
+  const indexPath = path.resolve(__dirname, "../client/dist/index.html");
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send("Página no encontrada (build no hecho)");
+  }
 });
+
 
 // Puerto dinámico para Render
 const PORT = process.env.PORT || 3000;

@@ -4,7 +4,6 @@ import Admin from './pages/admin.jsx'
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-
 function App() {
   return (
     <Routes>

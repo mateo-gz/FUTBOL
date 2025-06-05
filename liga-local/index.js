@@ -168,19 +168,48 @@ app.put('/partidos/:id', async (req, res) => {
 });
 
 app.get('/tabla-posiciones', async (req, res) => {
-  const actualizarEquipo = async (id, puntos, gf, gc) => {
-    await client.query(`
-      UPDATE equipos
-      SET puntos = puntos + $1,
-          goles_a_favor = goles_a_favor + $2,
-          goles_en_contra = goles_en_contra + $3,
-          diferencia_goles = diferencia_goles + ($2 - $3),
-          partidos_jugados = partidos_jugados + 1
-      WHERE id = $4
-    `, [puntos, gf, gc, id]);
-  };
-  await actualizarEquipo(equipo_local, puntosLocal, golesLocal, golesVisitante);
-  await actualizarEquipo(equipo_visitante, puntosVisitante, golesVisitante, golesLocal);  
+  try {
+    const result = await client.query(`
+      SELECT
+        e.id AS equipo_id,
+        e.nombre AS equipo,
+        COUNT(p.id) AS PJ,
+        SUM(CASE
+          WHEN (p.equipo_local = e.id AND p.goles_local > p.goles_visitante) OR
+               (p.equipo_visitante = e.id AND p.goles_visitante > p.goles_local)
+          THEN 1 ELSE 0 END) AS G,
+        SUM(CASE WHEN p.goles_local = p.goles_visitante THEN 1 ELSE 0 END) AS E,
+        SUM(CASE
+          WHEN (p.equipo_local = e.id AND p.goles_local < p.goles_visitante) OR
+               (p.equipo_visitante = e.id AND p.goles_visitante < p.goles_local)
+          THEN 1 ELSE 0 END) AS P,
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_local
+                 WHEN p.equipo_visitante = e.id THEN p.goles_visitante ELSE 0 END) AS GF,
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_visitante
+                 WHEN p.equipo_visitante = e.id THEN p.goles_local ELSE 0 END) AS GC,
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_local
+                 WHEN p.equipo_visitante = e.id THEN p.goles_visitante ELSE 0 END)
+        -
+        SUM(CASE WHEN p.equipo_local = e.id THEN p.goles_visitante
+                 WHEN p.equipo_visitante = e.id THEN p.goles_local ELSE 0 END) AS DG,
+        SUM(CASE
+          WHEN (p.equipo_local = e.id AND p.goles_local > p.goles_visitante) OR
+               (p.equipo_visitante = e.id AND p.goles_visitante > p.goles_local)
+          THEN 3
+          WHEN p.goles_local = p.goles_visitante THEN 1
+          ELSE 0
+        END) AS PTS
+      FROM equipos e
+      LEFT JOIN partidos p ON (p.equipo_local = e.id OR p.equipo_visitante = e.id)
+        AND p.goles_local IS NOT NULL AND p.goles_visitante IS NOT NULL
+      GROUP BY e.id, e.nombre
+      ORDER BY PTS DESC, DG DESC, GF DESC;
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al obtener la tabla de posiciones');
+  }
 });
 
 
@@ -203,8 +232,8 @@ app.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, username: user.username },
-      'tu_clave_secreta_ultra_segura', // ¡Cámbiala! No seas noob 😅
-      { expiresIn: '1h' }
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }    
     );
 
     res.json({ token });

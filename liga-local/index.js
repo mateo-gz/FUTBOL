@@ -253,7 +253,6 @@ app.use((req, res, next) => {
   }
 });
 
-const path = require('path');
 const express = require('express');
 
 // 👇 Servir archivos estáticos del build de React

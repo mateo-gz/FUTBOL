@@ -253,8 +253,6 @@ app.use((req, res, next) => {
   }
 });
 
-const express = require('express');
-
 // 👇 Servir archivos estáticos del build de React
 app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 

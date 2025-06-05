@@ -253,6 +253,17 @@ app.use((req, res, next) => {
   }
 });
 
+const path = require('path');
+const express = require('express');
+
+// 👇 Servir archivos estáticos del build de React
+app.use(express.static(path.join(__dirname, 'frontend', 'build')));
+
+// 👇 Cualquier ruta que no sea API, mandala a React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+});
+
 
 // Puerto dinámico para Render
 const PORT = process.env.PORT || 3000;

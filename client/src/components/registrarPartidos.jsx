@@ -14,7 +14,7 @@ const Registro = () => {
     // Cargar los partidos desde el backend
     const fetchPartidos = async () => {
       try {
-        const response = await fetch('http://localhost:3000/partidos');
+        const response = await fetch('https://backendsn.onrender.com/partidos');
         const data = await response.json();
         setPartidos(data);
       } catch (error) {
@@ -38,7 +38,7 @@ const Registro = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3000/registrar-resultado', {
+      const response = await fetch('https://backendsn.onrender.com/registrar-resultado', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

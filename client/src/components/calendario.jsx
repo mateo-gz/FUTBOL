@@ -8,7 +8,7 @@ const Calendario = () => {
   useEffect(() => {
     const traerPartidos = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/partidos');
+        const response = await axios.get('https://backendsn.onrender.com/partidos');
         setPartidos(response.data);
       } catch (error) {
         console.error('Error cargando los partidos:', error);

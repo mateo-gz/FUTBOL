@@ -8,7 +8,7 @@ const AgregarEquipo = () => {
   const manejarSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/equipos', {
+      const res = await axios.post('https://backendsn.onrender.com/equipos', {
         nombre: nombre
       });
       setMensaje('Equipo agregado con éxito 💪');
@@ -21,7 +21,7 @@ const AgregarEquipo = () => {
 
   const eliminarEquipo = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:3000/equipos/${id}`);
+      const response = await axios.delete(`https://backendsn.onrender.com/equipos/${id}`);
       alert(response.data.mensaje);
     } catch (error) {
       console.error('Error al eliminar equipo:', error);

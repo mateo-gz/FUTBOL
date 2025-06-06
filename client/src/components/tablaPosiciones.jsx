@@ -5,7 +5,7 @@ const TablaPosiciones = () => {
   const [tabla, setTabla] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3000/tabla-posiciones')
+    axios.get('https://backendsn.onrender.com/tabla-posiciones')
       .then(res => setTabla(res.data))
       .catch(console.error);
   }, []);

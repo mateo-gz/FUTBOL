@@ -7,7 +7,7 @@ const EditarResultados = () => {
   const [form, setForm] = useState({ golesLocal: '', golesVisitante: '' });
 
   useEffect(() => {
-    axios.get('http://localhost:3000/partidos').then(res => setPartidos(res.data));
+    axios.get('https://backendsn.onrender.com/partidos').then(res => setPartidos(res.data));
   }, []);
 
   const handleEdit = (partido) => {
@@ -23,13 +23,13 @@ const EditarResultados = () => {
   };
 
   const guardarCambios = async (id) => {
-    await axios.put(`http://localhost:3000/partidos/${id}`, {
+    await axios.put(`https://backendsn.onrender.com/partidos/${id}`, {
       goles_local: parseInt(form.golesLocal),
       goles_visitante: parseInt(form.golesVisitante)
     });
 
     // Actualizar lista
-    const res = await axios.get('http://localhost:3000/partidos');
+    const res = await axios.get('https://backendsn.onrender.com/partidos');
     setPartidos(res.data);
     setEditandoId(null);
   };

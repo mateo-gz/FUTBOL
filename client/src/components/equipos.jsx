@@ -4,7 +4,7 @@ const ListaEquipos = () => {
   const [equipos, setEquipos] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/equipos')
+    fetch('https://backendsn.onrender.com/equipos')
       .then(res => res.json())
       .then(data => setEquipos(data))
       .catch(err => console.error('Error trayendo equipos:', err));
